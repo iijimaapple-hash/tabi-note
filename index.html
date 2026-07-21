@@ -2,7 +2,11 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#faf6ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="旅ノート">
 <title>ふたりの旅ノート</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -228,6 +232,7 @@ main{max-width:1060px;margin:0 auto;padding:26px 20px 90px}
   border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;
   font-size:.9rem;pointer-events:none;
 }
+.memo-dot{display:none}
 .empty-note{text-align:center;color:var(--ink-soft);padding:60px 20px;line-height:2}
 .empty-note .big{font-size:2.6rem}
 
@@ -377,13 +382,113 @@ main{max-width:1060px;margin:0 auto;padding:26px 20px 90px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .center-load{text-align:center;padding:70px 0;color:var(--ink-soft)}
 
-@media(max-width:640px){
-  .nav button{padding:6px 10px;font-size:.82rem}
-  .anniv .milestone{margin-left:0;text-align:left}
-  .photo-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:22px 16px}
-  .lb-main{padding:0 8px}
-  .lb-arrow{width:38px;height:38px}
+/* ===== 下部タブバー(スマホ用アプリ風ナビ) ===== */
+.bottombar{
+  position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;
+  background:rgba(255,253,247,.97);backdrop-filter:blur(10px);
+  border-top:2px dashed var(--line);
+  padding:6px 8px calc(7px + env(safe-area-inset-bottom));
+  box-shadow:0 -4px 16px rgba(90,70,40,.08);
 }
+.bottombar button{
+  flex:1;border:none;background:none;color:var(--ink-soft);
+  font-size:.68rem;font-weight:700;letter-spacing:.02em;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:7px 0 5px;border-radius:14px;transition:all .15s;
+}
+.bottombar .bi{font-size:1.4rem;line-height:1}
+.bottombar button.active{color:var(--teal);background:var(--teal-soft)}
+.pc-only{display:none}
+@media(min-width:768px){
+  .bottombar{display:none}
+  .pc-only{display:inline}
+}
+
+/* ===== スマホ最適化(〜767px) ===== */
+@media(max-width:767px){
+  .nav{display:none}
+  .gearbtn{display:none !important}
+  .topbar{padding:9px 16px;justify-content:center}
+  .logo .en{font-size:1.3rem}
+  .logo .ja{font-size:1rem}
+  main{padding:16px 14px calc(96px + env(safe-area-inset-bottom))}
+  .card{padding:24px 18px}
+  .hero{margin:12px auto}
+  .hero h1{font-size:1.25rem}
+  .btn{padding:13px 26px;font-size:1rem}
+  .btn-sm{padding:9px 16px;font-size:.85rem}
+  /* iOSの自動ズーム防止のため入力は16px以上 */
+  .field input[type=text],.field input[type=date],.field input[type=email],
+  .field textarea,.field select,.ev-row input,.lb-memo textarea{font-size:16px}
+  /* 記念日バナー */
+  .anniv{padding:14px 16px 18px;gap:6px 12px;margin-bottom:20px}
+  .anniv .heart{font-size:1.6rem}
+  .anniv .days{font-size:2.1rem}
+  .anniv .label{font-size:.78rem}
+  .anniv .milestone{margin-left:0;text-align:left;font-size:.78rem;width:100%;line-height:1.6}
+  .anniv .milestone br{display:none}
+  .section-title h2{font-size:1.05rem}
+  .section-title .en{display:none}
+  /* アルバムカード */
+  .album-grid{grid-template-columns:1fr;gap:22px}
+  .ticket .cover{height:190px}
+  .ticket-new{min-height:120px;flex-direction:row;gap:12px}
+  .ticket-new .plus{font-size:1.8rem}
+  /* アルバム詳細 */
+  .album-head h2{font-size:1.2rem}
+  .album-actions{width:100%;margin-left:0}
+  .dropzone{padding:16px 14px;font-size:.95rem;margin-top:14px}
+  .dropzone .sub{font-size:.75rem;margin-top:4px}
+  /* 写真: 3列コンパクトグリッド(スマホの写真アプリ風) */
+  .photo-grid{grid-template-columns:repeat(3,1fr);gap:7px;margin-top:18px}
+  .polaroid{padding:0;border-radius:9px;box-shadow:0 1px 5px rgba(90,70,40,.16);overflow:hidden}
+  .polaroid:nth-child(n){transform:none}
+  .polaroid:hover{transform:none}
+  .polaroid .ph{border-radius:9px}
+  .polaroid .cap{display:none}
+  .polaroid .vid-badge{top:6px;right:6px;width:26px;height:26px;font-size:.7rem}
+  .memo-dot{
+    position:absolute;bottom:5px;right:5px;width:22px;height:22px;
+    background:rgba(255,253,247,.92);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:.65rem;
+    box-shadow:0 1px 3px rgba(0,0,0,.2);
+  }
+  /* 記念日ページ */
+  .cd-grid{grid-template-columns:repeat(2,1fr);gap:11px}
+  .cd-card{padding:16px 10px 13px}
+  .cd-card .ico{font-size:1.4rem}
+  .cd-card .lbl{font-size:.83rem}
+  .cd-card .date{font-size:.7rem}
+  .cd-card .left{font-size:1.6rem;margin-top:5px}
+  .chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{white-space:nowrap;flex-shrink:0}
+  /* タイムライン */
+  .timeline{margin-left:4px;padding-left:26px}
+  .tl-item{padding:12px 14px;gap:12px}
+  .tl-item img,.tl-item .thumb-ph{width:60px;height:60px}
+  .tl-item::before{left:-22px}
+  .tl-year::before{left:-26px}
+  /* モーダル → ボトムシート */
+  .modal-bg{align-items:flex-end;padding:0}
+  .modal{
+    max-width:none;border-radius:20px 20px 0 0;max-height:88vh;
+    padding:26px 20px calc(26px + env(safe-area-inset-bottom));
+    animation:sheetup .28s cubic-bezier(.2,.8,.3,1);
+  }
+  .modal::before{
+    content:"";display:block;width:44px;height:5px;border-radius:3px;
+    background:var(--line);margin:-10px auto 14px;
+  }
+  .modal-foot{position:sticky;bottom:0;background:#fffdf7;padding-top:10px}
+  /* ライトボックス: スワイプ操作なので矢印は非表示 */
+  .lb-arrow{display:none}
+  .lb-main{padding:0 6px}
+  .lb-memo{padding:10px 12px calc(14px + env(safe-area-inset-bottom))}
+  .lb-memo textarea{height:56px}
+  .empty-note{padding:40px 16px}
+}
+@keyframes sheetup{from{transform:translateY(60px);opacity:.5}to{transform:translateY(0);opacity:1}}
 </style>
 </head>
 <body>
@@ -461,8 +566,8 @@ main{max-width:1060px;margin:0 auto;padding:26px 20px 90px}
     </div>
     <p class="album-memo" id="albumMemo"></p>
     <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
-      📤 ここに写真・動画をドラッグ&ドロップ<br>
-      <span class="sub">またはクリックしてファイルを選ぶ(複数OK・動画もOK)</span>
+      📷 写真・動画を追加<br>
+      <span class="sub">タップして選択(複数OK・動画もOK)<span class="pc-only"> / ドラッグ&ドロップでもOK</span></span>
       <input type="file" id="fileInput" multiple accept="image/*,video/*" class="hidden">
     </div>
     <div class="upload-list" id="uploadList"></div>
@@ -507,6 +612,14 @@ main{max-width:1060px;margin:0 auto;padding:26px 20px 90px}
     </div>
   </section>
 </main>
+
+<!-- ===== 下部タブバー(スマホ) ===== -->
+<nav class="bottombar hidden" id="bottomNav">
+  <button id="bn-albums" onclick="nav('albums')"><span class="bi">🎫</span>アルバム</button>
+  <button id="bn-events" onclick="nav('events')"><span class="bi">🎉</span>記念日</button>
+  <button id="bn-timeline" onclick="nav('timeline')"><span class="bi">🧭</span>あゆみ</button>
+  <button id="bn-settings" onclick="openSettings()"><span class="bi">⚙️</span>設定</button>
+</nav>
 
 <!-- ===== アルバム作成/編集モーダル ===== -->
 <div class="modal-bg hidden" id="albumModal">
@@ -674,9 +787,13 @@ function show(id){
   const logged = !["screen-setup","screen-login"].includes(id);
   $("mainNav").classList.toggle("hidden", !logged);
   $("gearBtn").classList.toggle("hidden", !logged);
+  $("bottomNav").classList.toggle("hidden", !logged);
   $("nav-albums").classList.toggle("active", id==="screen-albums"||id==="screen-album");
   $("nav-events").classList.toggle("active", id==="screen-events");
   $("nav-timeline").classList.toggle("active", id==="screen-timeline");
+  $("bn-albums").classList.toggle("active", id==="screen-albums"||id==="screen-album");
+  $("bn-events").classList.toggle("active", id==="screen-events");
+  $("bn-timeline").classList.toggle("active", id==="screen-timeline");
   window.scrollTo(0,0);
 }
 function nav(where){
@@ -974,6 +1091,7 @@ function renderPhotos(){
         ? `<img class="ph" src="${bigThumb(f.thumbnailLink,400)}" loading="lazy" alt="" onerror="this.outerHTML='<div class=&quot;ph&quot; style=&quot;display:flex;align-items:center;justify-content:center;font-size:2rem;opacity:.4&quot;>${isVideo?"🎬":"🖼"}</div>'">`
         : `<div class="ph" style="display:flex;align-items:center;justify-content:center;font-size:2rem;opacity:.4">${isVideo?"🎬":"🖼"}</div>`}
       ${isVideo?`<span class="vid-badge">▶</span>`:""}
+      ${f.description?`<span class="memo-dot">📝</span>`:""}
       <div class="cap">${esc(f.description||"")}</div>
     </div>`;
   }).join("");
@@ -1108,6 +1226,17 @@ document.addEventListener("keydown", e=>{
   if(e.key==="ArrowLeft") lbMove(-1);
   if(e.key==="ArrowRight") lbMove(1);
 });
+// スマホ: 左右スワイプで前後の写真へ
+let _tx=null,_ty=null;
+$("lbMain").addEventListener("touchstart", e=>{
+  if(e.touches.length===1){ _tx=e.touches[0].clientX; _ty=e.touches[0].clientY; }
+},{passive:true});
+$("lbMain").addEventListener("touchend", e=>{
+  if(_tx===null) return;
+  const dx=e.changedTouches[0].clientX-_tx, dy=e.changedTouches[0].clientY-_ty;
+  _tx=null;
+  if(Math.abs(dx)>55 && Math.abs(dx)>Math.abs(dy)*1.4) lbMove(dx<0?1:-1);
+},{passive:true});
 
 /* ---------- タイムライン ---------- */
 async function renderTimeline(){
