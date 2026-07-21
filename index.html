@@ -811,30 +811,53 @@ function nav(where){
 }
 function closeModal(id){ $(id).classList.add("hidden"); }
 
-/* ---------- 起動 ---------- */
-function gisLoaded(){ gisReady = true; boot(); }
+/* ---------- 起動・ログイン ----------
+   ・トークンは localStorage に保存 → ブラウザを閉じても約1時間は再ログイン不要
+   ・期限切れの場合も、まず「無音の自動ログイン」を試し、成功すればそのまま入れる
+   ・自動ログインに失敗したときだけログインボタンを表示する */
+let silentTry = false;
+
+function gisLoaded(){
+  gisReady = true;
+  if(accessToken){ initTokenClient(); return; } // すでにトークンで入場済み
+  boot();
+}
+function initTokenClient(){
+  if(tokenClient || !gisReady) return;
+  const cid = localStorage.getItem(LS_CLIENT);
+  if(!cid) return;
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: cid,
+    scope: SCOPES,
+    callback: onToken,
+    error_callback: e => {
+      if(silentTry){ silentTry=false; resetLoginBtn(); show("screen-login"); return; } // 自動ログイン失敗は静かに
+      console.warn(e); toast("ログインできませんでした"); resetLoginBtn(); show("screen-login");
+    }
+  });
+}
+function resetLoginBtn(){ $("loginBtn").disabled=false; $("loginBtn").textContent="Google でログイン"; }
 function boot(){
   const cid = localStorage.getItem(LS_CLIENT);
   if(location.protocol==="file:") $("fileWarn").style.display="block";
   if(!cid){ show("screen-setup"); return; }
-  if(!gisReady){ show("screen-login"); return; }
-  if(!tokenClient){
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: cid,
-      scope: SCOPES,
-      callback: onToken,
-      error_callback: e => { console.warn(e); toast("ログインできませんでした"); show("screen-login"); }
-    });
-  }
-  // 保存済みトークンがあれば再利用
+  // ① 保存済みトークンがまだ有効ならそのまま入る(ブラウザを閉じても保持される)
   try{
-    const saved = JSON.parse(sessionStorage.getItem(LS_TOKEN)||"null");
+    const saved = JSON.parse(localStorage.getItem(LS_TOKEN)||"null");
     if(saved && saved.exp > Date.now()+60000){
       accessToken = saved.t; tokenExpiry = saved.exp;
+      initTokenClient();
       afterLogin(); return;
     }
   }catch(e){}
+  if(!gisReady){ show("screen-login"); return; }
+  initTokenClient();
+  // ② 期限切れ → 無音の自動ログインを試す(成功すればボタンを押す必要なし)
   show("screen-login");
+  $("loginBtn").disabled = true; $("loginBtn").textContent = "自動ログイン中…";
+  silentTry = true;
+  try{ tokenClient.requestAccessToken({prompt:""}); }
+  catch(e){ silentTry=false; resetLoginBtn(); }
 }
 function saveClientId(){
   const v = $("clientIdInput").value.trim();
@@ -845,47 +868,62 @@ function saveClientId(){
 }
 function resetClientId(){
   localStorage.removeItem(LS_CLIENT);
-  sessionStorage.removeItem(LS_TOKEN);
+  localStorage.removeItem(LS_TOKEN);
   tokenClient = null; accessToken = null;
   show("screen-setup");
 }
 function signIn(){
   if(!tokenClient){ toast("Googleとの接続準備中です。少し待ってからもう一度押してください"); boot(); return; }
+  silentTry = false;
   tokenClient.requestAccessToken({prompt:""});
 }
-// GSIスクリプトが読み込めない場合でも設定画面は出す
-window.addEventListener("DOMContentLoaded", ()=>{ setTimeout(()=>{ if(!gisReady) boot(); }, 1200); });
+// GSIスクリプトが読み込めない場合でも画面は出す
+window.addEventListener("DOMContentLoaded", ()=>{ setTimeout(()=>{ if(!gisReady && !accessToken) boot(); }, 1200); });
 function signOut(){
   if(accessToken) try{ google.accounts.oauth2.revoke(accessToken); }catch(e){}
-  accessToken=null; sessionStorage.removeItem(LS_TOKEN);
-  closeModal("settingsModal"); show("screen-login");
+  accessToken=null; localStorage.removeItem(LS_TOKEN);
+  closeModal("settingsModal"); resetLoginBtn(); show("screen-login");
+}
+// トークンを保存(画面遷移などの副作用なし)。更新(リフレッシュ)時にも使う
+function storeToken(resp){
+  if(resp.error) return false;
+  accessToken = resp.access_token;
+  tokenExpiry = Date.now() + (resp.expires_in||3600)*1000;
+  localStorage.setItem(LS_TOKEN, JSON.stringify({t:accessToken, exp:tokenExpiry}));
+  return true;
 }
 function onToken(resp){
   if(resp.error){
+    if(silentTry){ silentTry=false; resetLoginBtn(); show("screen-login"); return; }
     if(resp.error==="interaction_required"||resp.error==="login_required"){ tokenClient.requestAccessToken({prompt:"consent"}); return; }
-    toast("ログインエラー: "+resp.error); show("screen-login"); return;
+    toast("ログインエラー: "+resp.error); resetLoginBtn(); show("screen-login"); return;
   }
-  accessToken = resp.access_token;
-  tokenExpiry = Date.now() + (resp.expires_in||3600)*1000;
-  sessionStorage.setItem(LS_TOKEN, JSON.stringify({t:accessToken, exp:tokenExpiry}));
+  silentTry = false; resetLoginBtn();
+  storeToken(resp);
   afterLogin();
+}
+// 期限が近い/切れているトークンを無音で更新(画面はそのまま)
+async function ensureToken(){
+  if(!tokenClient) return;
+  if(Date.now() < tokenExpiry - 60000) return;
+  await new Promise(res=>{
+    const orig = tokenClient.callback;
+    tokenClient.callback = r=>{ storeToken(r); tokenClient.callback = orig; res(); };
+    try{ tokenClient.requestAccessToken({prompt:""}); }
+    catch(e){ tokenClient.callback = orig; res(); }
+  });
 }
 
 /* ---------- Drive API ---------- */
 async function api(path, opts={}, retry=true){
-  if(Date.now() > tokenExpiry - 60000 && retry){
-    await new Promise(res=>{
-      const orig = tokenClient.callback;
-      tokenClient.callback = r=>{ onToken(r); tokenClient.callback=orig; res(); };
-      tokenClient.requestAccessToken({prompt:""});
-    });
-  }
+  if(retry) await ensureToken();
   const r = await fetch("https://www.googleapis.com/drive/v3/"+path, {
     ...opts,
     headers: { "Authorization":"Bearer "+accessToken, ...(opts.headers||{}) }
   });
   if(r.status===401 && retry){
     tokenExpiry = 0;
+    await ensureToken();
     return api(path, opts, false);
   }
   if(!r.ok){ throw new Error("Drive API "+r.status+": "+await r.text()); }
@@ -921,21 +959,22 @@ async function loadConfig(){
   }
 }
 async function saveConfig(){
-  const blob = new Blob([JSON.stringify(state.config)], {type:"application/json"});
-  if(state.configFileId){
-    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${state.configFileId}?uploadType=media`,{
-      method:"PATCH", headers:{Authorization:"Bearer "+accessToken}, body:blob
+  await ensureToken();
+  // ① 設定ファイルがまだ無ければ、まず空ファイルを確実に作る
+  if(!state.configFileId){
+    const meta = await api("files",{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ name: CONFIG_NAME, parents:[state.rootId], mimeType:"application/json" })
     });
-  }else{
-    const meta = { name: CONFIG_NAME, parents:[state.rootId] };
-    const fd = new FormData();
-    fd.append("metadata", new Blob([JSON.stringify(meta)],{type:"application/json"}));
-    fd.append("file", blob);
-    const r = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",{
-      method:"POST", headers:{Authorization:"Bearer "+accessToken}, body:fd
-    });
-    state.configFileId = (await r.json()).id;
+    state.configFileId = meta.id;
   }
+  // ② 中身を書き込む(失敗したら例外にして「保存しました」と偽らない)
+  const r = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${state.configFileId}?uploadType=media`,{
+    method:"PATCH",
+    headers:{ Authorization:"Bearer "+accessToken, "Content-Type":"application/json" },
+    body: JSON.stringify(state.config)
+  });
+  if(!r.ok) throw new Error("設定の書き込みに失敗 ("+r.status+")");
 }
 
 async function afterLogin(){
@@ -945,6 +984,7 @@ async function afterLogin(){
     await loadConfig();
     renderAnniv();
     await loadAlbums();
+    consolidateOwnership(); // 保存先をオーナーのドライブに集約(バックグラウンド)
   }catch(e){
     console.error(e);
     toast("読み込みに失敗しました。もう一度ログインしてください");
@@ -976,9 +1016,10 @@ function fetchCoversAsync(rerender){
       if(al.coverId){
         try{ cover = await api(`files/${al.coverId}?fields=thumbnailLink,trashed`); if(cover.trashed) cover=null; }catch(e){}
       }
-      const listRes = await api(`files?q=${q(`'${al.id}' in parents and trashed = false and (mimeType contains 'image/' or mimeType contains 'video/')`)}&fields=files(id,thumbnailLink)&pageSize=1000`);
-      al.count = listRes.files.length;
-      if(!cover && listRes.files.length) cover = listRes.files[0];
+      const listRes = await api(`files?q=${q(`'${al.id}' in parents and trashed = false and (mimeType contains 'image/' or mimeType contains 'video/')`)}&fields=files(id,thumbnailLink,appProperties)&pageSize=1000`);
+      const media = listRes.files.filter(f=>!(f.appProperties && f.appProperties.consolidated==="1"));
+      al.count = media.length;
+      if(!cover && media.length) cover = media[0];
       al.coverThumb = cover ? bigThumb(cover.thumbnailLink, 500) : "";
       rerender();
     }catch(e){ console.warn(e); }
@@ -1079,9 +1120,17 @@ async function loadPhotos(){
   try{
     let files=[], pageToken="";
     do{
-      const res = await api(`files?q=${q(`'${state.currentAlbum.id}' in parents and trashed = false and (mimeType contains 'image/' or mimeType contains 'video/')`)}&fields=nextPageToken,files(id,name,mimeType,thumbnailLink,description,createdTime,webViewLink,size,imageMediaMetadata(time))&orderBy=createdTime desc&pageSize=200${pageToken?"&pageToken="+pageToken:""}`);
+      const res = await api(`files?q=${q(`'${state.currentAlbum.id}' in parents and trashed = false and (mimeType contains 'image/' or mimeType contains 'video/')`)}&fields=nextPageToken,files(id,name,mimeType,thumbnailLink,description,createdTime,webViewLink,size,appProperties)&orderBy=createdTime desc&pageSize=200${pageToken?"&pageToken="+pageToken:""}`);
       files = files.concat(res.files); pageToken = res.nextPageToken||"";
     }while(pageToken);
+    // オーナーへ集約済みの旧ファイル(重複)は表示しない
+    files = files.filter(f=>!(f.appProperties && f.appProperties.consolidated==="1"));
+    // 元の撮影・追加順を保つ(コピーで作り直されたファイルは元の日時 takenAt を使う)
+    files.sort((a,b)=>{
+      const ta = Date.parse((a.appProperties&&a.appProperties.takenAt)||a.createdTime)||0;
+      const tb = Date.parse((b.appProperties&&b.appProperties.takenAt)||b.createdTime)||0;
+      return tb-ta;
+    });
     state.files = files;
     renderPhotos();
   }catch(e){ console.error(e); toast("写真の読み込みに失敗しました"); }
@@ -1140,6 +1189,7 @@ async function uploadFiles(files){
   toast("🧳 思い出をしまいました");
 }
 async function uploadOne(file, parentId, onProgress){
+  await ensureToken();
   // レジューム可能アップロードのセッション開始
   const initRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable",{
     method:"POST",
@@ -1275,6 +1325,48 @@ async function loadAlbumsSilent(){
   const res = await api(`files?q=${q(`'${state.rootId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`)}&fields=files(id,name,appProperties)&pageSize=200`);
   state.albums = res.files.map(parseAlbum);
   state.albums.sort((a,b)=> (b.start||"0000") < (a.start||"0000") ? -1 : 1);
+}
+
+/* ---------- 保存先の一元化(オーナー集約) ----------
+   すべてのファイルを「ふたりの旅ノート」フォルダのオーナー(最初に作った人)の
+   ドライブ容量にまとめる仕組み。
+   ・オーナー側でアプリを開くと: 相手名義のファイルを自分名義でコピーし、
+     元ファイルに「整理済み」マークを付ける(画面には二重表示されない)
+   ・相手側でアプリを開くと: マークの付いた自分名義の旧ファイルをゴミ箱へ移動
+   → 結果的に全ファイルがオーナーの容量だけを使う状態に収束する */
+async function consolidateOwnership(){
+  try{
+    const root = await api(`files/${state.rootId}?fields=ownedByMe`);
+    if(root.ownedByMe){
+      if(!state.albums.length){ try{ await loadAlbumsSilent(); }catch(e){} }
+      let moved = 0;
+      for(const al of state.albums){
+        const res = await api(`files?q=${q(`'${al.id}' in parents and trashed = false and (mimeType contains 'image/' or mimeType contains 'video/')`)}&fields=files(id,name,description,createdTime,ownedByMe,appProperties)&pageSize=1000`);
+        for(const f of res.files){
+          const p = f.appProperties||{};
+          if(f.ownedByMe || p.consolidated==="1") continue;
+          try{
+            const copy = await api(`files/${f.id}/copy`,{method:"POST",headers:{"Content-Type":"application/json"},
+              body: JSON.stringify({ name:f.name, parents:[al.id], description:f.description||"",
+                appProperties:{ takenAt: p.takenAt || f.createdTime } })});
+            await api(`files/${f.id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},
+              body: JSON.stringify({ appProperties:{ consolidated:"1", dupOf: copy.id } })});
+            moved++;
+          }catch(e){ console.warn("集約できませんでした:", f.name, e); }
+        }
+      }
+      if(moved){
+        toast(`📥 相手の${moved}件をあなたのドライブ名義にまとめました`);
+        if(state.currentAlbum && !$("screen-album").classList.contains("hidden")) loadPhotos();
+      }
+    }else{
+      // 相手側: オーナーへ集約済みの自分名義の旧ファイルを掃除(容量を解放)
+      const res = await api(`files?q=${q(`'me' in owners and appProperties has { key='consolidated' and value='1' } and trashed = false`)}&fields=files(id)&pageSize=1000`);
+      for(const f of res.files){
+        try{ await api(`files/${f.id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({trashed:true})}); }catch(e){}
+      }
+    }
+  }catch(e){ console.warn("consolidateOwnership", e); }
 }
 
 /* ---------- 記念日・イベント画面 ---------- */
