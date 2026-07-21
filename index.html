@@ -8,7 +8,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="旅ノート">
 <title>ふたりの旅ノート</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
@@ -699,7 +700,7 @@ main{max-width:1060px;margin:0 auto;padding:26px 20px 90px}
       <button class="btn btn-ghost" onclick="signOut()">ログアウト</button>
       <button class="btn btn-teal" id="settingsSaveBtn" onclick="saveSettings()">保存する</button>
     </div>
-    <p class="note-mini" style="text-align:right;margin-top:8px">ふたりの旅ノート v1.5</p>
+    <p class="note-mini" style="text-align:right;margin-top:8px">ふたりの旅ノート v1.7</p>
   </div>
 </div>
 
@@ -1206,30 +1207,63 @@ async function uploadFiles(files){
   loadPhotos();
   toast("🧳 思い出をしまいました");
 }
+// XHRで進捗を取りながら送信(共通)
+function xhrSend(method, url, body, headers, onProgress){
+  return new Promise((resolve,reject)=>{
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url);
+    xhr.setRequestHeader("Authorization","Bearer "+accessToken);
+    Object.entries(headers||{}).forEach(([k,v])=>xhr.setRequestHeader(k,v));
+    xhr.upload.onprogress = e=>{ if(e.lengthComputable && onProgress) onProgress(Math.round(e.loaded/e.total*100)); };
+    xhr.onload = ()=>{
+      if(xhr.status>=200 && xhr.status<300){ resolve(xhr); return; }
+      let msg = "HTTP "+xhr.status;
+      try{ const j=JSON.parse(xhr.responseText); if(j.error&&j.error.message) msg += ": "+j.error.message; }catch(e){}
+      reject(new Error(msg));
+    };
+    xhr.onerror = ()=> reject(new Error("通信エラー(ネットワーク)"));
+    xhr.send(body);
+  });
+}
 async function uploadOne(file, parentId, onProgress){
   await ensureToken();
-  // レジューム可能アップロードのセッション開始
-  const initRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable",{
-    method:"POST",
-    headers:{
-      "Authorization":"Bearer "+accessToken,
-      "Content-Type":"application/json",
-      "X-Upload-Content-Type": file.type || "application/octet-stream",
-      "X-Upload-Content-Length": String(file.size)
-    },
+  // 【方法1】レジューム可能アップロード(大きな動画に最適)
+  try{
+    const initRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable",{
+      method:"POST",
+      headers:{
+        "Authorization":"Bearer "+accessToken,
+        "Content-Type":"application/json",
+        "X-Upload-Content-Type": file.type || "application/octet-stream",
+        "X-Upload-Content-Length": String(file.size)
+      },
+      body: JSON.stringify({ name:file.name, parents:[parentId] })
+    });
+    if(initRes.ok){
+      const sessionUrl = initRes.headers.get("Location") || initRes.headers.get("location");
+      if(sessionUrl){
+        await xhrSend("PUT", sessionUrl, file, {}, onProgress);
+        return;
+      }
+      console.warn("アップロード先URLを取得できず(ブラウザ制約) → 代替方式で送信します");
+    }else{
+      console.warn("レジューム開始に失敗 "+initRes.status+" → 代替方式で送信します");
+    }
+  }catch(e){ console.warn("レジューム方式が使えません → 代替方式で送信します", e); }
+  // 【方法2・代替】ファイル枠を先に作成 → 中身を書き込み(設定保存と同じ実績のある経路)
+  const meta = await api("files",{
+    method:"POST", headers:{"Content-Type":"application/json"},
     body: JSON.stringify({ name:file.name, parents:[parentId] })
   });
-  if(!initRes.ok) throw new Error("アップロード開始に失敗 ("+initRes.status+")");
-  const sessionUrl = initRes.headers.get("Location");
-  // XHRで進捗を取りながら送信
-  await new Promise((resolve,reject)=>{
-    const xhr = new XMLHttpRequest();
-    xhr.open("PUT", sessionUrl);
-    xhr.upload.onprogress = e=>{ if(e.lengthComputable) onProgress(Math.round(e.loaded/e.total*100)); };
-    xhr.onload = ()=> (xhr.status>=200&&xhr.status<300) ? resolve() : reject(new Error("HTTP "+xhr.status));
-    xhr.onerror = ()=> reject(new Error("通信エラー"));
-    xhr.send(file);
-  });
+  try{
+    await xhrSend("PATCH",
+      `https://www.googleapis.com/upload/drive/v3/files/${meta.id}?uploadType=media`,
+      file, {"Content-Type": file.type || "application/octet-stream"}, onProgress);
+  }catch(e){
+    // 中身の書き込みに失敗した空ファイルは残さない
+    try{ await api(`files/${meta.id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({trashed:true})}); }catch(e2){}
+    throw e;
+  }
 }
 
 /* ---------- ライトボックス ---------- */
