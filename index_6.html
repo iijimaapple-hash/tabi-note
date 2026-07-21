@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ふたりの旅ノート</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#faf6ec;
+  --paper2:#f3ecdc;
+  --ink:#3a3226;
+  --ink-soft:#6b5f4d;
+  --kraft:#8b6f47;
+  --teal:#2f6f6b;
+  --teal-soft:#e2efee;
+  --terra:#c96f4a;
+  --terra-soft:#f7e5dc;
+  --line:#d9cfba;
+  --tape1:rgba(201,111,74,.45);
+  --tape2:rgba(47,111,107,.4);
+  --tape3:rgba(214,177,94,.5);
+  --shadow:0 3px 14px rgba(90,70,40,.14);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Zen Maru Gothic',sans-serif;
+  color:var(--ink);
+  background-color:var(--paper);
+  background-image:
+    radial-gradient(rgba(139,111,71,.05) 1px, transparent 1.2px),
+    linear-gradient(rgba(139,111,71,.03) 1px, transparent 1px);
+  background-size:22px 22px, 100% 34px;
+  min-height:100vh;
+}
+button{font-family:inherit;cursor:pointer}
+input,textarea,select{font-family:inherit;color:var(--ink)}
+img{display:block}
+.hidden{display:none !important}
+
+/* ===== top bar ===== */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  background:rgba(250,246,236,.92);
+  backdrop-filter:blur(6px);
+  border-bottom:2px dashed var(--line);
+  display:flex;align-items:center;gap:14px;
+  padding:10px 20px;
+}
+.logo{display:flex;align-items:baseline;gap:8px;user-select:none;cursor:pointer}
+.logo .en{font-family:'Caveat',cursive;font-size:1.5rem;color:var(--terra);transform:rotate(-3deg)}
+.logo .ja{font-weight:700;font-size:1.12rem;letter-spacing:.06em}
+.nav{display:flex;gap:6px;margin-left:auto}
+.nav button{
+  border:none;background:transparent;color:var(--ink-soft);
+  font-size:.92rem;font-weight:500;padding:7px 14px;border-radius:20px;
+  transition:all .18s;
+}
+.nav button:hover{background:var(--paper2)}
+.nav button.active{background:var(--teal);color:#fff;box-shadow:var(--shadow)}
+.gearbtn{border:none;background:transparent;font-size:1.2rem;padding:6px 8px;border-radius:50%;transition:transform .3s}
+.gearbtn:hover{transform:rotate(60deg)}
+
+main{max-width:1060px;margin:0 auto;padding:26px 20px 90px}
+
+/* ===== generic paper card ===== */
+.card{
+  background:#fffdf7;
+  border:1px solid var(--line);
+  border-radius:10px;
+  box-shadow:var(--shadow);
+  padding:28px;
+}
+.stitch{position:relative}
+.stitch::before{
+  content:"";position:absolute;inset:7px;
+  border:2px dashed rgba(139,111,71,.28);
+  border-radius:7px;pointer-events:none;
+}
+
+/* ===== buttons ===== */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;justify-content:center;
+  border:none;border-radius:24px;padding:11px 24px;
+  font-size:.95rem;font-weight:700;letter-spacing:.03em;
+  transition:transform .15s, box-shadow .15s, opacity .15s;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(90,70,40,.2)}
+.btn:disabled{opacity:.5;pointer-events:none}
+.btn-teal{background:var(--teal);color:#fff}
+.btn-terra{background:var(--terra);color:#fff}
+.btn-ghost{background:transparent;color:var(--ink-soft);border:2px solid var(--line)}
+.btn-sm{padding:7px 16px;font-size:.85rem}
+
+/* ===== stamps & tape ===== */
+.stamp{
+  display:inline-block;font-family:'Caveat',cursive;
+  border:2.5px solid currentColor;border-radius:50%;
+  padding:14px 10px;text-align:center;line-height:1.1;
+  transform:rotate(-8deg);opacity:.75;user-select:none;
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 .1'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 .1'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.tape{
+  position:absolute;width:92px;height:26px;top:-13px;left:50%;
+  transform:translateX(-50%) rotate(-3deg);
+  background:var(--tape3);
+  box-shadow:0 1px 3px rgba(0,0,0,.08);
+  opacity:.9;
+}
+.tape.t2{background:var(--tape2)}
+.tape.t1{background:var(--tape1)}
+
+/* ===== setup / login screens ===== */
+.hero{max-width:640px;margin:30px auto;text-align:center;position:relative}
+.hero h1{font-size:1.5rem;font-weight:700;margin:10px 0 4px;letter-spacing:.05em}
+.hero .sub{color:var(--ink-soft);font-size:.95rem;margin-bottom:22px;line-height:1.9}
+.hero .bigicon{font-size:3rem}
+.field{margin:16px 0;text-align:left}
+.field label{display:block;font-size:.85rem;font-weight:700;color:var(--ink-soft);margin-bottom:6px}
+.field input[type=text],.field input[type=date],.field input[type=email],.field textarea,.field select{
+  width:100%;padding:11px 14px;font-size:.95rem;
+  border:2px solid var(--line);border-radius:9px;background:#fff;
+  outline:none;transition:border-color .15s;
+}
+.field input:focus,.field textarea:focus{border-color:var(--teal)}
+.note-mini{font-size:.78rem;color:var(--ink-soft);margin-top:6px;line-height:1.7}
+.warnbox{background:var(--terra-soft);border:1.5px dashed var(--terra);border-radius:9px;padding:12px 16px;font-size:.85rem;line-height:1.8;margin:14px 0;text-align:left}
+.okbox{background:var(--teal-soft);border:1.5px dashed var(--teal);border-radius:9px;padding:12px 16px;font-size:.85rem;line-height:1.8;margin:14px 0;text-align:left}
+
+/* ===== anniversary banner ===== */
+.anniv{
+  position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:18px;
+  background:linear-gradient(105deg,#fffdf7 60%,var(--terra-soft));
+  border:1px solid var(--line);border-radius:12px;
+  box-shadow:var(--shadow);padding:20px 26px;margin-bottom:30px;overflow:hidden;
+}
+.anniv .heart{font-size:2rem}
+.anniv .days{font-family:'Caveat',cursive;font-size:2.6rem;color:var(--terra);line-height:1}
+.anniv .label{font-size:.9rem;color:var(--ink-soft);font-weight:500}
+.anniv .milestone{margin-left:auto;text-align:right;font-size:.85rem;color:var(--ink-soft);line-height:1.8}
+.anniv .milestone b{color:var(--teal);font-size:1.05rem}
+.anniv .airline{position:absolute;bottom:6px;left:0;right:0;border-top:2px dashed rgba(201,111,74,.35)}
+
+/* ===== album grid (ticket cards) ===== */
+.section-title{display:flex;align-items:center;gap:12px;margin:8px 0 20px}
+.section-title h2{font-size:1.15rem;letter-spacing:.08em}
+.section-title .en{font-family:'Caveat',cursive;color:var(--kraft);font-size:1.2rem;transform:rotate(-2deg)}
+.album-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:26px}
+.ticket{
+  position:relative;background:#fffdf7;border-radius:12px;
+  box-shadow:var(--shadow);cursor:pointer;overflow:visible;
+  transition:transform .18s, box-shadow .18s;
+  border:1px solid var(--line);
+}
+.ticket:hover{transform:translateY(-4px) rotate(.4deg);box-shadow:0 10px 24px rgba(90,70,40,.22)}
+.ticket .cover{
+  height:170px;border-radius:11px 11px 0 0;overflow:hidden;position:relative;
+  background:repeating-linear-gradient(45deg,var(--paper2),var(--paper2) 12px,#efe6d2 12px,#efe6d2 24px);
+  display:flex;align-items:center;justify-content:center;
+}
+.ticket .cover img{width:100%;height:100%;object-fit:cover}
+.ticket .cover .noimg{font-size:2.2rem;opacity:.45}
+.ticket .body{padding:16px 18px 14px;border-top:2px dashed var(--line);position:relative}
+.ticket .body::before,.ticket .body::after{
+  content:"";position:absolute;top:-9px;width:18px;height:18px;border-radius:50%;
+  background:var(--paper);border:1px solid var(--line);
+}
+.ticket .body::before{left:-10px;border-left-color:transparent}
+.ticket .body::after{right:-10px;border-right-color:transparent}
+.ticket h3{font-size:1.02rem;margin-bottom:5px;letter-spacing:.03em}
+.ticket .meta{font-size:.8rem;color:var(--ink-soft);display:flex;flex-wrap:wrap;gap:4px 12px}
+.ticket .cnt{
+  position:absolute;top:10px;right:10px;background:rgba(58,50,38,.72);color:#fff;
+  font-size:.75rem;border-radius:14px;padding:3px 10px;backdrop-filter:blur(2px);
+}
+.ticket .loc-stamp{
+  position:absolute;top:-12px;left:14px;background:var(--teal);color:#fff;
+  font-size:.72rem;font-weight:700;padding:4px 12px;border-radius:4px;
+  transform:rotate(-3deg);box-shadow:0 2px 5px rgba(0,0,0,.15);letter-spacing:.05em;
+  z-index:3;
+}
+.ticket-new{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  min-height:250px;border:2.5px dashed var(--kraft);border-radius:12px;
+  color:var(--kraft);background:rgba(255,253,247,.55);cursor:pointer;
+  transition:all .18s;font-weight:700;
+}
+.ticket-new:hover{background:#fffdf7;transform:translateY(-3px)}
+.ticket-new .plus{font-size:2.4rem;line-height:1;font-family:'Caveat',cursive}
+
+/* ===== album detail ===== */
+.album-head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;margin-bottom:8px}
+.album-head h2{font-size:1.45rem;letter-spacing:.04em}
+.album-head .meta{color:var(--ink-soft);font-size:.88rem;padding-bottom:4px}
+.backlink{
+  border:none;background:none;color:var(--teal);font-weight:700;font-size:.9rem;
+  padding:4px 0;margin-bottom:8px;display:inline-flex;gap:6px;align-items:center;
+}
+.backlink:hover{text-decoration:underline}
+.album-actions{display:flex;gap:10px;margin-left:auto;flex-wrap:wrap}
+.album-memo{color:var(--ink-soft);font-size:.9rem;margin:2px 0 18px;line-height:1.9;white-space:pre-wrap}
+
+/* photo polaroid grid */
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:30px 24px;margin-top:26px}
+.polaroid{
+  position:relative;background:#fff;padding:10px 10px 14px;
+  box-shadow:0 3px 10px rgba(90,70,40,.18);cursor:pointer;
+  transition:transform .18s, box-shadow .18s;border-radius:3px;
+}
+.polaroid:nth-child(4n+1){transform:rotate(-1.6deg)}
+.polaroid:nth-child(4n+2){transform:rotate(1.2deg)}
+.polaroid:nth-child(4n+3){transform:rotate(-.7deg)}
+.polaroid:nth-child(4n+4){transform:rotate(1.8deg)}
+.polaroid:hover{transform:rotate(0) scale(1.04);box-shadow:0 10px 22px rgba(90,70,40,.28);z-index:2}
+.polaroid .ph{width:100%;aspect-ratio:1/1;object-fit:cover;background:var(--paper2);border-radius:2px}
+.polaroid .cap{
+  font-family:'Caveat',cursive;font-size:1.02rem;color:var(--ink-soft);
+  margin-top:8px;min-height:1.2em;text-align:center;overflow:hidden;
+  white-space:nowrap;text-overflow:ellipsis;
+}
+.polaroid .vid-badge{
+  position:absolute;top:16px;right:16px;background:rgba(0,0,0,.55);color:#fff;
+  border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;pointer-events:none;
+}
+.empty-note{text-align:center;color:var(--ink-soft);padding:60px 20px;line-height:2}
+.empty-note .big{font-size:2.6rem}
+
+/* upload area */
+.dropzone{
+  margin-top:22px;border:2.5px dashed var(--teal);border-radius:12px;
+  background:rgba(226,239,238,.5);padding:30px;text-align:center;color:var(--teal);
+  transition:all .15s;cursor:pointer;font-weight:700;
+}
+.dropzone.drag{background:var(--teal-soft);transform:scale(1.01)}
+.dropzone .sub{font-weight:400;font-size:.82rem;color:var(--ink-soft);margin-top:6px}
+.upload-list{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.up-item{background:#fffdf7;border:1px solid var(--line);border-radius:8px;padding:8px 14px;font-size:.83rem}
+.up-item .bar{height:6px;background:var(--paper2);border-radius:3px;margin-top:6px;overflow:hidden}
+.up-item .bar>div{height:100%;background:var(--teal);width:0%;transition:width .25s;border-radius:3px}
+.up-item.done .bar>div{background:var(--terra)}
+
+/* ===== countdown cards (記念日) ===== */
+.cd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:18px}
+.cd-card{
+  position:relative;background:#fffdf7;border:1px solid var(--line);border-radius:12px;
+  box-shadow:var(--shadow);padding:20px 18px 16px;text-align:center;overflow:hidden;
+  transition:transform .15s;
+}
+.cd-card:hover{transform:translateY(-3px)}
+.cd-card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:6px;
+  background:repeating-linear-gradient(90deg,var(--terra) 0 14px,#fffdf7 14px 20px,var(--teal) 20px 34px,#fffdf7 34px 40px);
+  opacity:.65;
+}
+.cd-card .ico{font-size:1.7rem}
+.cd-card .lbl{font-weight:700;font-size:.95rem;margin:6px 0 2px;letter-spacing:.03em}
+.cd-card .date{font-size:.78rem;color:var(--ink-soft)}
+.cd-card .left{font-family:'Caveat',cursive;font-size:2rem;color:var(--terra);line-height:1.1;margin-top:8px}
+.cd-card .left small{font-family:'Zen Maru Gothic',sans-serif;font-size:.75rem;color:var(--ink-soft);font-weight:400}
+.cd-card.today{background:linear-gradient(140deg,#fffdf7,var(--terra-soft))}
+.cd-card.today .left{font-size:1.6rem}
+.cd-card.soon .left{color:var(--teal)}
+
+/* filter chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  border:2px solid var(--line);background:#fffdf7;color:var(--ink-soft);
+  border-radius:20px;padding:6px 16px;font-size:.85rem;font-weight:700;
+  transition:all .15s;
+}
+.chip:hover{border-color:var(--kraft)}
+.chip.on{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:var(--shadow)}
+
+/* custom event rows in settings */
+.ev-row{display:flex;gap:8px;margin-top:8px;align-items:center}
+.ev-row input[type=text]{flex:1.2;padding:9px 12px;border:2px solid var(--line);border-radius:8px;font-size:.88rem;outline:none}
+.ev-row input[type=date]{flex:1;padding:9px 10px;border:2px solid var(--line);border-radius:8px;font-size:.85rem;outline:none}
+.ev-row button{border:none;background:var(--terra-soft);color:var(--terra);border-radius:8px;padding:8px 11px;font-weight:700}
+.tag-mini{
+  display:inline-block;background:var(--teal-soft);color:var(--teal);
+  border-radius:12px;padding:1px 9px;font-size:.72rem;font-weight:700;
+}
+
+/* ===== timeline ===== */
+.timeline{position:relative;margin:30px 0 0 10px;padding-left:34px}
+.timeline::before{
+  content:"";position:absolute;left:10px;top:0;bottom:0;
+  border-left:3px dashed var(--kraft);opacity:.5;
+}
+.tl-year{
+  font-family:'Caveat',cursive;font-size:1.7rem;color:var(--terra);
+  margin:26px 0 12px;position:relative;
+}
+.tl-year::before{
+  content:"✈";position:absolute;left:-34px;top:4px;font-size:1rem;
+  background:var(--paper);color:var(--kraft);padding:2px 0;
+}
+.tl-item{
+  position:relative;background:#fffdf7;border:1px solid var(--line);border-radius:10px;
+  box-shadow:var(--shadow);padding:14px 18px;margin-bottom:18px;cursor:pointer;
+  display:flex;gap:16px;align-items:center;transition:transform .15s;
+}
+.tl-item:hover{transform:translateX(5px)}
+.tl-item::before{
+  content:"";position:absolute;left:-30px;top:50%;width:11px;height:11px;border-radius:50%;
+  background:var(--teal);border:3px solid var(--paper);transform:translateY(-50%);
+  box-shadow:0 0 0 1.5px var(--teal);
+}
+.tl-item img{width:74px;height:74px;object-fit:cover;border-radius:7px;background:var(--paper2)}
+.tl-item .thumb-ph{width:74px;height:74px;border-radius:7px;background:var(--paper2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;opacity:.6}
+.tl-item h4{font-size:1rem;margin-bottom:3px}
+.tl-item .meta{font-size:.8rem;color:var(--ink-soft)}
+
+/* ===== modal ===== */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(58,50,38,.5);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;
+  animation:fadein .2s;
+}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.modal{
+  background:#fffdf7;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);
+  max-width:520px;width:100%;max-height:92vh;overflow-y:auto;padding:30px;position:relative;
+}
+.modal h3{font-size:1.15rem;margin-bottom:6px;letter-spacing:.04em}
+.modal .x{
+  position:absolute;top:12px;right:14px;border:none;background:none;
+  font-size:1.3rem;color:var(--ink-soft);padding:4px 8px;
+}
+.modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+
+/* lightbox */
+.lightbox{
+  position:fixed;inset:0;background:rgba(20,16,10,.9);z-index:110;
+  display:flex;flex-direction:column;animation:fadein .18s;
+}
+.lb-top{display:flex;align-items:center;gap:10px;padding:12px 18px;color:#eee}
+.lb-top .name{font-size:.85rem;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-top .sp{margin-left:auto;display:flex;gap:8px}
+.lb-top button{background:rgba(255,255,255,.12);border:none;color:#fff;border-radius:8px;padding:8px 13px;font-size:.85rem}
+.lb-top button:hover{background:rgba(255,255,255,.25)}
+.lb-main{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;position:relative;padding:0 60px}
+.lb-main img{max-width:100%;max-height:100%;object-fit:contain;border-radius:4px}
+.lb-main iframe{width:min(90vw,900px);height:min(70vh,560px);border:none;border-radius:8px;background:#000}
+.lb-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);
+  background:rgba(255,255,255,.14);border:none;color:#fff;font-size:1.4rem;
+  width:46px;height:46px;border-radius:50%;
+}
+.lb-arrow:hover{background:rgba(255,255,255,.3)}
+.lb-arrow.prev{left:10px}.lb-arrow.next{right:10px}
+.lb-memo{padding:14px 20px 20px;display:flex;gap:10px;align-items:flex-start;max-width:760px;margin:0 auto;width:100%}
+.lb-memo textarea{
+  flex:1;background:rgba(255,253,247,.96);border:none;border-radius:9px;padding:11px 14px;
+  font-size:.92rem;resize:none;height:64px;outline:none;font-family:'Zen Maru Gothic',sans-serif;
+}
+.lb-memo .btn{white-space:nowrap}
+
+/* toast + loading */
+.toast{
+  position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
+  background:var(--ink);color:#fff;border-radius:24px;padding:11px 26px;
+  font-size:.9rem;z-index:200;box-shadow:0 6px 18px rgba(0,0,0,.25);
+  animation:toastin .25s;
+}
+@keyframes toastin{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+.loader{
+  display:inline-block;width:20px;height:20px;border:3px solid var(--line);
+  border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.center-load{text-align:center;padding:70px 0;color:var(--ink-soft)}
+
+@media(max-width:640px){
+  .nav button{padding:6px 10px;font-size:.82rem}
+  .anniv .milestone{margin-left:0;text-align:left}
+  .photo-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:22px 16px}
+  .lb-main{padding:0 8px}
+  .lb-arrow{width:38px;height:38px}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="logo" onclick="nav('albums')">
+    <span class="en">Our Trip Note</span>
+    <span class="ja">ふたりの旅ノート</span>
+  </div>
+  <nav class="nav hidden" id="mainNav">
+    <button id="nav-albums" onclick="nav('albums')">🎫 アルバム</button>
+    <button id="nav-events" onclick="nav('events')">🎉 記念日</button>
+    <button id="nav-timeline" onclick="nav('timeline')">🧭 タイムライン</button>
+  </nav>
+  <button class="gearbtn hidden" id="gearBtn" title="設定" onclick="openSettings()">⚙️</button>
+</header>
+
+<main>
+  <!-- ===== 初期設定 ===== -->
+  <section id="screen-setup" class="hidden">
+    <div class="hero card stitch">
+      <div class="bigicon">🛫</div>
+      <h1>はじめまして、ふたりの旅ノートです</h1>
+      <p class="sub">旅の写真と動画を Google ドライブに保存して、<br>ふたりだけのアルバムとして残していくノートです。<br>最初に一度だけ、Google との接続設定をお願いします。</p>
+      <div class="warnbox" id="fileWarn" style="display:none">
+        ⚠️ このページは <b>file://</b>(ファイルを直接開いた状態)で表示されています。Google ログインは <b>https:// のURL か http://localhost</b> でしか動きません。付属の「セットアップ手順書」の方法で公開してから開いてください。
+      </div>
+      <div class="field">
+        <label>Google OAuth クライアント ID</label>
+        <input type="text" id="clientIdInput" placeholder="例: 1234567890-xxxxxxxx.apps.googleusercontent.com">
+        <p class="note-mini">📖 取得方法は付属の「セットアップ手順書」に写真つきでまとめてあります(無料・約10分)。一度保存すればこの端末では次回から不要です。</p>
+      </div>
+      <button class="btn btn-teal" onclick="saveClientId()">保存してはじめる ✈</button>
+    </div>
+  </section>
+
+  <!-- ===== ログイン ===== -->
+  <section id="screen-login" class="hidden">
+    <div class="hero card stitch">
+      <div class="bigicon">🎒</div>
+      <h1>旅ノートをひらく</h1>
+      <p class="sub">Google アカウントでログインすると、<br>ドライブの「ふたりの旅ノート」フォルダにつながります。</p>
+      <button class="btn btn-terra" id="loginBtn" onclick="signIn()">Google でログイン</button>
+      <p class="note-mini" style="text-align:center;margin-top:14px">クライアントIDを変える場合は <a href="#" onclick="resetClientId();return false">こちら</a></p>
+    </div>
+  </section>
+
+  <!-- ===== アルバム一覧 ===== -->
+  <section id="screen-albums" class="hidden">
+    <div class="anniv" id="annivBanner" style="display:none">
+      <span class="heart">💑</span>
+      <div>
+        <div class="days" id="annivDays">-</div>
+        <div class="label" id="annivLabel">ふたりの記念日から</div>
+      </div>
+      <div class="milestone" id="annivMilestone"></div>
+      <div class="airline"></div>
+    </div>
+    <div class="section-title">
+      <h2>🎫 旅のアルバム</h2><span class="en">travel albums</span>
+    </div>
+    <div id="albumsLoading" class="center-load"><span class="loader"></span> ドライブから読み込み中…</div>
+    <div class="album-grid" id="albumGrid"></div>
+  </section>
+
+  <!-- ===== アルバム詳細 ===== -->
+  <section id="screen-album" class="hidden">
+    <button class="backlink" onclick="nav('albums')">← アルバム一覧へ</button>
+    <div class="album-head">
+      <h2 id="albumTitle"></h2>
+      <span class="meta" id="albumMeta"></span>
+      <div class="album-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openEditAlbum()">✏️ 編集</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteAlbum()">🗑 削除</button>
+      </div>
+    </div>
+    <p class="album-memo" id="albumMemo"></p>
+    <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+      📤 ここに写真・動画をドラッグ&ドロップ<br>
+      <span class="sub">またはクリックしてファイルを選ぶ(複数OK・動画もOK)</span>
+      <input type="file" id="fileInput" multiple accept="image/*,video/*" class="hidden">
+    </div>
+    <div class="upload-list" id="uploadList"></div>
+    <div id="photosLoading" class="center-load hidden"><span class="loader"></span> 写真を読み込み中…</div>
+    <div class="photo-grid" id="photoGrid"></div>
+    <div class="empty-note hidden" id="photoEmpty">
+      <div class="big">📷</div>
+      まだ写真がありません。<br>最初の一枚を貼って、旅の続きをはじめましょう。
+    </div>
+  </section>
+
+  <!-- ===== 記念日・イベント ===== -->
+  <section id="screen-events" class="hidden">
+    <div class="section-title">
+      <h2>🎉 ふたりの記念日</h2><span class="en">special days</span>
+    </div>
+    <div class="okbox" id="evHint" style="display:none">
+      まだ記念日が登録されていません。右上の ⚙️ 設定から <b>交際開始日・ふたりの誕生日・自由な記念日</b> を登録すると、ここにカウントダウンが並びます。
+    </div>
+    <div class="cd-grid" id="cdGrid"></div>
+    <div class="section-title" style="margin-top:38px">
+      <h2>🎫 イベントごとのアルバム</h2><span class="en">albums by event</span>
+    </div>
+    <div class="chips" id="evChips"></div>
+    <div class="album-grid" id="evAlbumGrid" style="margin-top:18px"></div>
+    <div class="empty-note hidden" id="evEmpty">
+      <div class="big">🎪</div>
+      このカテゴリのアルバムはまだありません。<br>アルバム作成時に「カテゴリ」を選ぶと、ここに整理されます。
+    </div>
+  </section>
+
+  <!-- ===== タイムライン ===== -->
+  <section id="screen-timeline" class="hidden">
+    <div class="section-title">
+      <h2>🧭 思い出タイムライン</h2><span class="en">memories in order</span>
+    </div>
+    <div id="tlLoading" class="center-load"><span class="loader"></span> 読み込み中…</div>
+    <div class="timeline" id="timelineBody"></div>
+    <div class="empty-note hidden" id="tlEmpty">
+      <div class="big">🗺</div>
+      まだ旅の記録がありません。<br>アルバムを作って日付を入れると、ここに旅の軌跡が描かれます。
+    </div>
+  </section>
+</main>
+
+<!-- ===== アルバム作成/編集モーダル ===== -->
+<div class="modal-bg hidden" id="albumModal">
+  <div class="modal stitch">
+    <button class="x" onclick="closeModal('albumModal')">✕</button>
+    <h3 id="albumModalTitle">🎫 新しい旅のアルバム</h3>
+    <p class="note-mini" style="margin-bottom:10px">ドライブにフォルダとして作成されます</p>
+    <div class="field">
+      <label>タイトル *</label>
+      <input type="text" id="fTitle" placeholder="例: 2026年夏 沖縄旅行">
+    </div>
+    <div class="field" style="display:flex;gap:12px">
+      <div style="flex:1"><label>出発日</label><input type="date" id="fStart"></div>
+      <div style="flex:1"><label>帰着日</label><input type="date" id="fEnd"></div>
+    </div>
+    <div class="field" style="display:flex;gap:12px">
+      <div style="flex:1">
+        <label>行き先・場所</label>
+        <input type="text" id="fLoc" placeholder="例: 沖縄・石垣島">
+      </div>
+      <div style="flex:1">
+        <label>カテゴリ</label>
+        <select id="fTag">
+          <option value="trip">🧳 旅行</option>
+          <option value="birthday">🎂 誕生日</option>
+          <option value="anniv">💑 記念日</option>
+          <option value="date">☕ おでかけ・デート</option>
+          <option value="season">🎄 季節イベント</option>
+          <option value="other">📌 その他</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>旅のメモ</label>
+      <textarea id="fMemo" rows="3" placeholder="どんな旅だった?"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('albumModal')">やめる</button>
+      <button class="btn btn-teal" id="albumSaveBtn" onclick="submitAlbum()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 設定モーダル ===== -->
+<div class="modal-bg hidden" id="settingsModal">
+  <div class="modal stitch">
+    <button class="x" onclick="closeModal('settingsModal')">✕</button>
+    <h3>⚙️ ふたりの設定</h3>
+    <p class="note-mini" style="margin-bottom:12px">ここで登録した日付は「🎉 記念日」ページのカウントダウンに表示されます</p>
+    <div class="field">
+      <label>💑 交際開始日</label>
+      <input type="date" id="sAnniv">
+      <p class="note-mini">トップの「◯日目」カウンターと、周年・100日ごとの節目カウントダウンに使われます</p>
+    </div>
+    <div class="field" style="display:flex;gap:12px">
+      <div style="flex:1"><label>あなたの名前</label><input type="text" id="sP1Name" placeholder="例: きりこ"></div>
+      <div style="flex:1"><label>🎂 あなたの誕生日</label><input type="date" id="sP1Birth"></div>
+    </div>
+    <div class="field" style="display:flex;gap:12px">
+      <div style="flex:1"><label>相手の名前</label><input type="text" id="sP2Name" placeholder="例: たろう"></div>
+      <div style="flex:1"><label>🎂 相手の誕生日</label><input type="date" id="sP2Birth"></div>
+    </div>
+    <div class="field">
+      <label>🎉 自由な記念日(初デート・入籍日・プロポーズ記念日など)</label>
+      <div id="evRows"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addEventRow()">＋ 記念日を追加</button>
+      <p class="note-mini">毎年くり返しでカウントダウンされます</p>
+    </div>
+    <div class="field">
+      <label>💌 相手をドライブのフォルダに招待する</label>
+      <input type="email" id="sPartner" placeholder="相手の Gmail アドレス">
+      <p class="note-mini">「ふたりの旅ノート」フォルダを相手に共有します(編集可)。相手にも通知メールが届きます。</p>
+      <button class="btn btn-terra btn-sm" style="margin-top:8px" onclick="invitePartner()">招待を送る</button>
+    </div>
+    <div class="okbox">相手側の使い方: 届いた共有を承認したあと、同じサイトを開いて自分の Google アカウントでログインするだけで、同じアルバムが見られます。</div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="signOut()">ログアウト</button>
+      <button class="btn btn-teal" onclick="saveSettings()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ライトボックス ===== -->
+<div class="lightbox hidden" id="lightbox">
+  <div class="lb-top">
+    <span class="name" id="lbName"></span>
+    <div class="sp">
+      <button onclick="setAsCover()" title="この写真をアルバムの表紙にする">🖼 表紙に</button>
+      <button onclick="openInDrive()" title="Googleドライブで開く">☁ Drive</button>
+      <button onclick="deletePhoto()" title="削除">🗑</button>
+      <button onclick="closeLightbox()">✕</button>
+    </div>
+  </div>
+  <div class="lb-main" id="lbMain">
+    <button class="lb-arrow prev" onclick="lbMove(-1)">‹</button>
+    <button class="lb-arrow next" onclick="lbMove(1)">›</button>
+  </div>
+  <div class="lb-memo">
+    <textarea id="lbMemo" placeholder="この瞬間のひとことメモ… (例: 夕日がきれいだった日)"></textarea>
+    <button class="btn btn-terra btn-sm" onclick="saveMemo()">メモを保存</button>
+  </div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer onload="gisLoaded()"></script>
+<script>
+"use strict";
+/* =========================================================
+   ふたりの旅ノート — Google Drive 連携 思い出アルバム
+   すべてブラウザ内で動作。データは自分たちの Google Drive のみに保存。
+   ========================================================= */
+
+const ROOT_NAME   = "ふたりの旅ノート";      // Drive上のルートフォルダ名
+const CONFIG_NAME = "_tabinote_config.json"; // 設定ファイル名
+const SCOPES = "https://www.googleapis.com/auth/drive";
+const LS_CLIENT = "tabinote_client_id";
+const LS_TOKEN  = "tabinote_token";
+
+let tokenClient = null;
+let accessToken = null;
+let tokenExpiry = 0;
+let gisReady = false;
+
+const CONFIG_DEFAULT = { names:"", anniv:"", p1:{name:"",birth:""}, p2:{name:"",birth:""}, events:[] };
+const EVENT_TAGS = [
+  {key:"trip",     label:"🧳 旅行"},
+  {key:"birthday", label:"🎂 誕生日"},
+  {key:"anniv",    label:"💑 記念日"},
+  {key:"date",     label:"☕ おでかけ・デート"},
+  {key:"season",   label:"🎄 季節イベント"},
+  {key:"other",    label:"📌 その他"},
+];
+function tagLabel(key){ const t=EVENT_TAGS.find(t=>t.key===key); return t?t.label:EVENT_TAGS[0].label; }
+
+const state = {
+  rootId: null,
+  configFileId: null,
+  config: JSON.parse(JSON.stringify(CONFIG_DEFAULT)),
+  albums: [],          // {id,name,start,end,loc,memo,tag,coverId,coverThumb,count}
+  currentAlbum: null,
+  files: [],           // 現在のアルバムのメディア
+  lbIndex: -1,
+  eventFilter: "all",
+};
+
+/* ---------- 小道具 ---------- */
+const $ = id => document.getElementById(id);
+function toast(msg){
+  document.querySelectorAll(".toast").forEach(t=>t.remove());
+  const t=document.createElement("div"); t.className="toast"; t.textContent=msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(),2800);
+}
+function esc(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
+function fmtDate(s){ if(!s) return ""; const [y,m,d]=s.split("-"); return `${y}.${m}.${d}`; }
+function fmtRange(a,b){
+  if(!a&&!b) return "";
+  if(a&&b&&a!==b) return `${fmtDate(a)} 〜 ${fmtDate(b)}`;
+  return fmtDate(a||b);
+}
+function bigThumb(link,size){ return link ? link.replace(/=s\d+(-c)?$/, "=s"+size) : ""; }
+
+/* ---------- 画面切替 ---------- */
+function show(id){
+  ["screen-setup","screen-login","screen-albums","screen-album","screen-events","screen-timeline"].forEach(s=>$(s).classList.add("hidden"));
+  $(id).classList.remove("hidden");
+  const logged = !["screen-setup","screen-login"].includes(id);
+  $("mainNav").classList.toggle("hidden", !logged);
+  $("gearBtn").classList.toggle("hidden", !logged);
+  $("nav-albums").classList.toggle("active", id==="screen-albums"||id==="screen-album");
+  $("nav-events").classList.toggle("active", id==="screen-events");
+  $("nav-timeline").classList.toggle("active", id==="screen-timeline");
+  window.scrollTo(0,0);
+}
+function nav(where){
+  if(!accessToken){ boot(); return; }
+  if(where==="albums"){ show("screen-albums"); loadAlbums(); }
+  if(where==="events"){ show("screen-events"); renderEvents(); }
+  if(where==="timeline"){ show("screen-timeline"); renderTimeline(); }
+}
+function closeModal(id){ $(id).classList.add("hidden"); }
+
+/* ---------- 起動 ---------- */
+function gisLoaded(){ gisReady = true; boot(); }
+function boot(){
+  const cid = localStorage.getItem(LS_CLIENT);
+  if(location.protocol==="file:") $("fileWarn").style.display="block";
+  if(!cid){ show("screen-setup"); return; }
+  if(!gisReady){ show("screen-login"); return; }
+  if(!tokenClient){
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: cid,
+      scope: SCOPES,
+      callback: onToken,
+      error_callback: e => { console.warn(e); toast("ログインできませんでした"); show("screen-login"); }
+    });
+  }
+  // 保存済みトークンがあれば再利用
+  try{
+    const saved = JSON.parse(sessionStorage.getItem(LS_TOKEN)||"null");
+    if(saved && saved.exp > Date.now()+60000){
+      accessToken = saved.t; tokenExpiry = saved.exp;
+      afterLogin(); return;
+    }
+  }catch(e){}
+  show("screen-login");
+}
+function saveClientId(){
+  const v = $("clientIdInput").value.trim();
+  if(!v.includes(".apps.googleusercontent.com")){ toast("クライアントIDの形式が違うようです"); return; }
+  localStorage.setItem(LS_CLIENT, v);
+  tokenClient = null;
+  boot();
+}
+function resetClientId(){
+  localStorage.removeItem(LS_CLIENT);
+  sessionStorage.removeItem(LS_TOKEN);
+  tokenClient = null; accessToken = null;
+  show("screen-setup");
+}
+function signIn(){
+  if(!tokenClient){ toast("Googleとの接続準備中です。少し待ってからもう一度押してください"); boot(); return; }
+  tokenClient.requestAccessToken({prompt:""});
+}
+// GSIスクリプトが読み込めない場合でも設定画面は出す
+window.addEventListener("DOMContentLoaded", ()=>{ setTimeout(()=>{ if(!gisReady) boot(); }, 1200); });
+function signOut(){
+  if(accessToken) try{ google.accounts.oauth2.revoke(accessToken); }catch(e){}
+  accessToken=null; sessionStorage.removeItem(LS_TOKEN);
+  closeModal("settingsModal"); show("screen-login");
+}
+function onToken(resp){
+  if(resp.error){
+    if(resp.error==="interaction_required"||resp.error==="login_required"){ tokenClient.requestAccessToken({prompt:"consent"}); return; }
+    toast("ログインエラー: "+resp.error); show("screen-login"); return;
+  }
+  accessToken = resp.access_token;
+  tokenExpiry = Date.now() + (resp.expires_in||3600)*1000;
+  sessionStorage.setItem(LS_TOKEN, JSON.stringify({t:accessToken, exp:tokenExpiry}));
+  afterLogin();
+}
+
+/* ---------- Drive API ---------- */
+async function api(path, opts={}, retry=true){
+  if(Date.now() > tokenExpiry - 60000 && retry){
+    await new Promise(res=>{
+      const orig = tokenClient.callback;
+      tokenClient.callback = r=>{ onToken(r); tokenClient.callback=orig; res(); };
+      tokenClient.requestAccessToken({prompt:""});
+    });
+  }
+  const r = await fetch("https://www.googleapis.com/drive/v3/"+path, {
+    ...opts,
+    headers: { "Authorization":"Bearer "+accessToken, ...(opts.headers||{}) }
+  });
+  if(r.status===401 && retry){
+    tokenExpiry = 0;
+    return api(path, opts, false);
+  }
+  if(!r.ok){ throw new Error("Drive API "+r.status+": "+await r.text()); }
+  if(r.status===204) return null;
+  const ct = r.headers.get("content-type")||"";
+  return ct.includes("json") ? r.json() : r;
+}
+function q(s){ return encodeURIComponent(s); }
+
+async function ensureRoot(){
+  const res = await api(`files?q=${q(`name = '${ROOT_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`)}&fields=files(id,name,owners)&pageSize=5`);
+  if(res.files.length){ state.rootId = res.files[0].id; return; }
+  const created = await api("files", {
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ name: ROOT_NAME, mimeType:"application/vnd.google-apps.folder" })
+  });
+  state.rootId = created.id;
+}
+async function loadConfig(){
+  const res = await api(`files?q=${q(`name = '${CONFIG_NAME}' and '${state.rootId}' in parents and trashed = false`)}&fields=files(id)&pageSize=1`);
+  if(res.files.length){
+    state.configFileId = res.files[0].id;
+    try{
+      const r = await api(`files/${state.configFileId}?alt=media`);
+      const loaded = await r.json();
+      state.config = {
+        ...JSON.parse(JSON.stringify(CONFIG_DEFAULT)), ...loaded,
+        p1:{...CONFIG_DEFAULT.p1, ...(loaded.p1||{})},
+        p2:{...CONFIG_DEFAULT.p2, ...(loaded.p2||{})},
+        events: Array.isArray(loaded.events)?loaded.events:[]
+      };
+    }catch(e){ console.warn("config読込失敗",e); }
+  }
+}
+async function saveConfig(){
+  const blob = new Blob([JSON.stringify(state.config)], {type:"application/json"});
+  if(state.configFileId){
+    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${state.configFileId}?uploadType=media`,{
+      method:"PATCH", headers:{Authorization:"Bearer "+accessToken}, body:blob
+    });
+  }else{
+    const meta = { name: CONFIG_NAME, parents:[state.rootId] };
+    const fd = new FormData();
+    fd.append("metadata", new Blob([JSON.stringify(meta)],{type:"application/json"}));
+    fd.append("file", blob);
+    const r = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",{
+      method:"POST", headers:{Authorization:"Bearer "+accessToken}, body:fd
+    });
+    state.configFileId = (await r.json()).id;
+  }
+}
+
+async function afterLogin(){
+  show("screen-albums");
+  try{
+    await ensureRoot();
+    await loadConfig();
+    renderAnniv();
+    await loadAlbums();
+  }catch(e){
+    console.error(e);
+    toast("読み込みに失敗しました。もう一度ログインしてください");
+    show("screen-login");
+  }
+}
+
+/* ---------- アルバム ---------- */
+function parseAlbum(f){
+  const p = f.appProperties||{};
+  return { id:f.id, name:f.name, start:p.start||"", end:p.end||"", loc:p.loc||"",
+           memo:p.memo||"", tag:p.tag||"trip", coverId:p.coverId||"", coverThumb:"", count:null };
+}
+async function loadAlbums(){
+  $("albumsLoading").style.display="block";
+  const res = await api(`files?q=${q(`'${state.rootId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`)}&fields=files(id,name,appProperties)&pageSize=200`);
+  state.albums = res.files.map(parseAlbum);
+  state.albums.sort((a,b)=> (b.start||"0000") < (a.start||"0000") ? -1 : 1);
+  renderAlbums();
+  $("albumsLoading").style.display="none";
+  fetchCoversAsync(renderAlbums);
+}
+// 表紙サムネイルと枚数を非同期で読み込み
+function fetchCoversAsync(rerender){
+  state.albums.forEach(async al=>{
+    if(al.count!==null) return;
+    try{
+      let cover = null;
+      if(al.coverId){
+        try{ cover = await api(`files/${al.coverId}?fields=thumbnailLink,trashed`); if(cover.trashed) cover=null; }catch(e){}
+      }
+      const listRes = await api(`files?q=${q(`'${al.id}' in parents and trashed = false and (mimeType contains 'image/' or mimeType contains 'video/')`)}&fields=files(id,thumbnailLink)&pageSize=1000`);
+      al.count = listRes.files.length;
+      if(!cover && listRes.files.length) cover = listRes.files[0];
+      al.coverThumb = cover ? bigThumb(cover.thumbnailLink, 500) : "";
+      rerender();
+    }catch(e){ console.warn(e); }
+  });
+}
+function ticketHTML(al){
+  return `
+    <div class="ticket" onclick="openAlbum('${al.id}')">
+      ${al.loc?`<span class="loc-stamp">📍 ${esc(al.loc)}</span>`:""}
+      <div class="cover">
+        ${al.coverThumb?`<img src="${al.coverThumb}" loading="lazy" alt="" onerror="this.remove()">`:`<span class="noimg">🏞</span>`}
+        ${al.count!==null?`<span class="cnt">${al.count} 枚</span>`:""}
+      </div>
+      <div class="body">
+        <h3>${esc(al.name)}</h3>
+        <div class="meta">
+          <span class="tag-mini">${tagLabel(al.tag)}</span>
+          ${fmtRange(al.start,al.end)?`<span>🗓 ${fmtRange(al.start,al.end)}</span>`:""}
+        </div>
+      </div>
+    </div>`;
+}
+function renderAlbums(){
+  $("albumGrid").innerHTML = state.albums.map(ticketHTML).join("") + `
+    <div class="ticket-new" onclick="openNewAlbum()">
+      <span class="plus">＋</span>
+      <span>新しい旅をはじめる</span>
+    </div>`;
+}
+
+let editingAlbumId = null;
+function openNewAlbum(){
+  editingAlbumId = null;
+  $("albumModalTitle").textContent = "🎫 新しいアルバム";
+  ["fTitle","fStart","fEnd","fLoc","fMemo"].forEach(i=>$(i).value="");
+  $("fTag").value = "trip";
+  $("albumModal").classList.remove("hidden");
+}
+function openEditAlbum(){
+  const al = state.currentAlbum; if(!al) return;
+  editingAlbumId = al.id;
+  $("albumModalTitle").textContent = "✏️ アルバムを編集";
+  $("fTitle").value=al.name; $("fStart").value=al.start; $("fEnd").value=al.end;
+  $("fLoc").value=al.loc; $("fMemo").value=al.memo; $("fTag").value=al.tag||"trip";
+  $("albumModal").classList.remove("hidden");
+}
+async function submitAlbum(){
+  const title = $("fTitle").value.trim();
+  if(!title){ toast("タイトルを入れてください"); return; }
+  $("albumSaveBtn").disabled = true;
+  const props = { start:$("fStart").value, end:$("fEnd").value, loc:$("fLoc").value.trim(), memo:$("fMemo").value.trim(), tag:$("fTag").value };
+  try{
+    if(editingAlbumId){
+      await api(`files/${editingAlbumId}`,{
+        method:"PATCH", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ name:title, appProperties:props })
+      });
+      Object.assign(state.currentAlbum, {name:title, ...props});
+      renderAlbumHead();
+      toast("アルバムを更新しました");
+    }else{
+      await api("files",{
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ name:title, mimeType:"application/vnd.google-apps.folder", parents:[state.rootId], appProperties:props })
+      });
+      toast("🎫 新しい旅ができました!");
+      await loadAlbums();
+    }
+    closeModal("albumModal");
+  }catch(e){ console.error(e); toast("保存に失敗しました"); }
+  $("albumSaveBtn").disabled = false;
+}
+async function deleteAlbum(){
+  const al = state.currentAlbum; if(!al) return;
+  if(!confirm(`「${al.name}」をゴミ箱に移動します。中の写真もまとめて移動されます。よろしいですか?`)) return;
+  await api(`files/${al.id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({trashed:true})});
+  toast("ゴミ箱に移動しました(Driveのゴミ箱から復元できます)");
+  nav("albums");
+}
+
+/* ---------- アルバム詳細 & 写真 ---------- */
+function openAlbum(id){
+  const al = state.albums.find(a=>a.id===id); if(!al) return;
+  state.currentAlbum = al;
+  show("screen-album");
+  renderAlbumHead();
+  loadPhotos();
+}
+function renderAlbumHead(){
+  const al = state.currentAlbum;
+  $("albumTitle").textContent = al.name;
+  $("albumMeta").textContent = [fmtRange(al.start,al.end), al.loc?("📍 "+al.loc):""].filter(Boolean).join("　");
+  $("albumMemo").textContent = al.memo||"";
+}
+async function loadPhotos(){
+  $("photoGrid").innerHTML=""; $("photoEmpty").classList.add("hidden");
+  $("photosLoading").classList.remove("hidden");
+  try{
+    let files=[], pageToken="";
+    do{
+      const res = await api(`files?q=${q(`'${state.currentAlbum.id}' in parents and trashed = false and (mimeType contains 'image/' or mimeType contains 'video/')`)}&fields=nextPageToken,files(id,name,mimeType,thumbnailLink,description,createdTime,webViewLink,size,imageMediaMetadata(time))&orderBy=createdTime desc&pageSize=200${pageToken?"&pageToken="+pageToken:""}`);
+      files = files.concat(res.files); pageToken = res.nextPageToken||"";
+    }while(pageToken);
+    state.files = files;
+    renderPhotos();
+  }catch(e){ console.error(e); toast("写真の読み込みに失敗しました"); }
+  $("photosLoading").classList.add("hidden");
+}
+function renderPhotos(){
+  const g = $("photoGrid");
+  $("photoEmpty").classList.toggle("hidden", state.files.length>0);
+  g.innerHTML = state.files.map((f,i)=>{
+    const isVideo = f.mimeType.startsWith("video/");
+    return `
+    <div class="polaroid" onclick="openLightbox(${i})">
+      ${f.thumbnailLink
+        ? `<img class="ph" src="${bigThumb(f.thumbnailLink,400)}" loading="lazy" alt="" onerror="this.outerHTML='<div class=&quot;ph&quot; style=&quot;display:flex;align-items:center;justify-content:center;font-size:2rem;opacity:.4&quot;>${isVideo?"🎬":"🖼"}</div>'">`
+        : `<div class="ph" style="display:flex;align-items:center;justify-content:center;font-size:2rem;opacity:.4">${isVideo?"🎬":"🖼"}</div>`}
+      ${isVideo?`<span class="vid-badge">▶</span>`:""}
+      <div class="cap">${esc(f.description||"")}</div>
+    </div>`;
+  }).join("");
+}
+
+/* ---------- アップロード(レジューム対応・進捗つき) ---------- */
+const fileInput = $("fileInput");
+fileInput.addEventListener("change", ()=>{ uploadFiles([...fileInput.files]); fileInput.value=""; });
+const dz = $("dropzone");
+["dragenter","dragover"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add("drag");}));
+["dragleave","drop"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove("drag");}));
+dz.addEventListener("drop", e=>{
+  const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith("image/")||f.type.startsWith("video/"));
+  if(files.length) uploadFiles(files); else toast("画像か動画のファイルを入れてください");
+});
+
+async function uploadFiles(files){
+  if(!state.currentAlbum) return;
+  for(const file of files){
+    const row = document.createElement("div");
+    row.className="up-item";
+    row.innerHTML = `📎 ${esc(file.name)} <span class="pct">0%</span><div class="bar"><div></div></div>`;
+    $("uploadList").appendChild(row);
+    try{
+      await uploadOne(file, state.currentAlbum.id, p=>{
+        row.querySelector(".pct").textContent = p+"%";
+        row.querySelector(".bar>div").style.width = p+"%";
+      });
+      row.classList.add("done");
+      row.querySelector(".pct").textContent = "✅ 保存しました";
+      row.querySelector(".bar>div").style.width = "100%";
+      setTimeout(()=>row.remove(), 4000);
+    }catch(e){
+      console.error(e);
+      row.querySelector(".pct").textContent = "❌ 失敗: "+e.message;
+    }
+  }
+  loadPhotos();
+  toast("🧳 思い出をしまいました");
+}
+async function uploadOne(file, parentId, onProgress){
+  // レジューム可能アップロードのセッション開始
+  const initRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable",{
+    method:"POST",
+    headers:{
+      "Authorization":"Bearer "+accessToken,
+      "Content-Type":"application/json",
+      "X-Upload-Content-Type": file.type || "application/octet-stream",
+      "X-Upload-Content-Length": String(file.size)
+    },
+    body: JSON.stringify({ name:file.name, parents:[parentId] })
+  });
+  if(!initRes.ok) throw new Error("アップロード開始に失敗 ("+initRes.status+")");
+  const sessionUrl = initRes.headers.get("Location");
+  // XHRで進捗を取りながら送信
+  await new Promise((resolve,reject)=>{
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", sessionUrl);
+    xhr.upload.onprogress = e=>{ if(e.lengthComputable) onProgress(Math.round(e.loaded/e.total*100)); };
+    xhr.onload = ()=> (xhr.status>=200&&xhr.status<300) ? resolve() : reject(new Error("HTTP "+xhr.status));
+    xhr.onerror = ()=> reject(new Error("通信エラー"));
+    xhr.send(file);
+  });
+}
+
+/* ---------- ライトボックス ---------- */
+function openLightbox(i){
+  state.lbIndex = i;
+  $("lightbox").classList.remove("hidden");
+  renderLightbox();
+}
+function closeLightbox(){ $("lightbox").classList.add("hidden"); clearLbMedia(); }
+function clearLbMedia(){ $("lbMain").querySelectorAll("img,iframe").forEach(el=>el.remove()); }
+function lbMove(d){
+  state.lbIndex = (state.lbIndex + d + state.files.length) % state.files.length;
+  renderLightbox();
+}
+function renderLightbox(){
+  const f = state.files[state.lbIndex]; if(!f) return;
+  clearLbMedia();
+  $("lbName").textContent = f.name;
+  $("lbMemo").value = f.description||"";
+  const main = $("lbMain");
+  if(f.mimeType.startsWith("video/")){
+    const ifr = document.createElement("iframe");
+    ifr.src = `https://drive.google.com/file/d/${f.id}/preview`;
+    ifr.allow = "autoplay; fullscreen";
+    main.appendChild(ifr);
+  }else{
+    const img = document.createElement("img");
+    img.src = bigThumb(f.thumbnailLink, 1600) || "";
+    img.alt = f.name;
+    main.appendChild(img);
+  }
+}
+async function saveMemo(){
+  const f = state.files[state.lbIndex]; if(!f) return;
+  const text = $("lbMemo").value.trim();
+  try{
+    await api(`files/${f.id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({description:text})});
+    f.description = text;
+    renderPhotos();
+    toast("📝 メモを保存しました");
+  }catch(e){ toast("メモの保存に失敗しました"); }
+}
+async function setAsCover(){
+  const f = state.files[state.lbIndex]; if(!f) return;
+  try{
+    await api(`files/${state.currentAlbum.id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({appProperties:{coverId:f.id}})});
+    state.currentAlbum.coverId = f.id;
+    state.currentAlbum.coverThumb = bigThumb(f.thumbnailLink,500);
+    toast("🖼 表紙にしました");
+  }catch(e){ toast("設定に失敗しました"); }
+}
+function openInDrive(){
+  const f = state.files[state.lbIndex]; if(!f) return;
+  window.open(f.webViewLink || `https://drive.google.com/file/d/${f.id}/view`, "_blank");
+}
+async function deletePhoto(){
+  const f = state.files[state.lbIndex]; if(!f) return;
+  if(!confirm("この写真をゴミ箱に移動しますか?")) return;
+  await api(`files/${f.id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({trashed:true})});
+  state.files.splice(state.lbIndex,1);
+  if(!state.files.length){ closeLightbox(); } else { state.lbIndex %= state.files.length; renderLightbox(); }
+  renderPhotos();
+  toast("ゴミ箱に移動しました");
+}
+document.addEventListener("keydown", e=>{
+  if($("lightbox").classList.contains("hidden")) return;
+  if(document.activeElement===$("lbMemo")) return;
+  if(e.key==="Escape") closeLightbox();
+  if(e.key==="ArrowLeft") lbMove(-1);
+  if(e.key==="ArrowRight") lbMove(1);
+});
+
+/* ---------- タイムライン ---------- */
+async function renderTimeline(){
+  $("tlLoading").style.display="block";
+  $("tlEmpty").classList.add("hidden");
+  if(!state.albums.length){
+    try{ await loadAlbumsSilent(); }catch(e){}
+  }
+  const dated = state.albums.filter(a=>a.start).sort((a,b)=> a.start<b.start?1:-1);
+  const body = $("timelineBody");
+  $("tlLoading").style.display="none";
+  if(!dated.length){ body.innerHTML=""; $("tlEmpty").classList.remove("hidden"); return; }
+  let html="", lastYear="";
+  for(const al of dated){
+    const year = al.start.slice(0,4);
+    if(year!==lastYear){ html += `<div class="tl-year">${year}</div>`; lastYear=year; }
+    html += `
+      <div class="tl-item" onclick="openAlbum('${al.id}')">
+        ${al.coverThumb?`<img src="${al.coverThumb}" loading="lazy" alt="" onerror="this.outerHTML='<div class=&quot;thumb-ph&quot;>🏞</div>'">`:`<div class="thumb-ph">🏞</div>`}
+        <div>
+          <h4>${esc(al.name)}</h4>
+          <div class="meta">🗓 ${fmtRange(al.start,al.end)} ${al.loc?"　📍 "+esc(al.loc):""} ${al.count!==null?"　📷 "+al.count+"枚":""}</div>
+        </div>
+      </div>`;
+  }
+  body.innerHTML = html;
+}
+async function loadAlbumsSilent(){
+  const res = await api(`files?q=${q(`'${state.rootId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`)}&fields=files(id,name,appProperties)&pageSize=200`);
+  state.albums = res.files.map(parseAlbum);
+  state.albums.sort((a,b)=> (b.start||"0000") < (a.start||"0000") ? -1 : 1);
+}
+
+/* ---------- 記念日・イベント画面 ---------- */
+function nextYearly(dateStr){
+  const base = new Date(dateStr+"T00:00:00");
+  const today = new Date(); today.setHours(0,0,0,0);
+  let next = new Date(today.getFullYear(), base.getMonth(), base.getDate());
+  if(next < today) next = new Date(today.getFullYear()+1, base.getMonth(), base.getDate());
+  const days = Math.round((next-today)/86400000);
+  const years = next.getFullYear()-base.getFullYear();
+  return { next, days, years };
+}
+function fmtD(d){ return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`; }
+
+function buildCountdowns(){
+  const c = state.config;
+  const items = [];
+  if(c.anniv){
+    const n = nextYearly(c.anniv);
+    items.push({icon:"💑", label:`交際 ${n.years}周年`, date:n.next, days:n.days});
+    const start = new Date(c.anniv+"T00:00:00");
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dcount = Math.floor((today-start)/86400000)+1;
+    if(dcount>=1){
+      const next100 = (Math.floor(dcount/100)+1)*100;
+      const t = new Date(start); t.setDate(start.getDate()+next100-1);
+      items.push({icon:"🔖", label:`交際 ${next100.toLocaleString()}日目`, date:t, days:next100-dcount});
+    }
+  }
+  [c.p1,c.p2].forEach(p=>{
+    if(p && p.birth){
+      const n = nextYearly(p.birth);
+      items.push({icon:"🎂", label:`${p.name?esc(p.name):"名前未設定"}の誕生日${n.years?` (${n.years}歳)`:""}`, date:n.next, days:n.days});
+    }
+  });
+  (c.events||[]).forEach(ev=>{
+    if(ev.date){
+      const n = nextYearly(ev.date);
+      const yr = n.years>0 ? ` (${n.years}年目)` : "";
+      items.push({icon:"🎉", label:esc(ev.label||"記念日")+yr, date:n.next, days:n.days});
+    }
+  });
+  items.sort((a,b)=>a.days-b.days);
+  return items;
+}
+async function renderEvents(){
+  const items = buildCountdowns();
+  $("evHint").style.display = items.length ? "none" : "block";
+  $("cdGrid").innerHTML = items.map(it=>`
+    <div class="cd-card ${it.days===0?"today":(it.days<=14?"soon":"")}">
+      <div class="ico">${it.icon}</div>
+      <div class="lbl">${it.label}</div>
+      <div class="date">🗓 ${fmtD(it.date)}</div>
+      <div class="left">${it.days===0?"今日です! 🎊":`あと ${it.days.toLocaleString()}<small> 日</small>`}</div>
+    </div>`).join("");
+  if(!state.albums.length){
+    try{ await loadAlbumsSilent(); }catch(e){ console.warn(e); }
+  }
+  renderEventAlbums();
+  fetchCoversAsync(renderEventAlbums);
+}
+function setEvFilter(key){ state.eventFilter = key; renderEventAlbums(); }
+function renderEventAlbums(){
+  if($("screen-events").classList.contains("hidden")) return;
+  const chips = [{key:"all",label:"すべて"}, ...EVENT_TAGS];
+  const cur = state.eventFilter;
+  $("evChips").innerHTML = chips.map(t=>
+    `<button class="chip ${cur===t.key?"on":""}" onclick="setEvFilter('${t.key}')">${t.label}</button>`).join("");
+  const list = state.albums.filter(a=> cur==="all" || (a.tag||"trip")===cur);
+  $("evAlbumGrid").innerHTML = list.map(ticketHTML).join("");
+  $("evEmpty").classList.toggle("hidden", list.length>0);
+}
+
+/* ---------- 記念日カウンター ---------- */
+function renderAnniv(){
+  const b = $("annivBanner");
+  if(!state.config.anniv){ b.style.display="none"; return; }
+  const anniv = new Date(state.config.anniv+"T00:00:00");
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = Math.floor((today-anniv)/86400000)+1;
+  if(days<1){ b.style.display="none"; return; }
+  b.style.display="flex";
+  $("annivDays").textContent = days.toLocaleString()+" 日目";
+  const dispNames = state.config.names || [state.config.p1&&state.config.p1.name, state.config.p2&&state.config.p2.name].filter(Boolean).join(" & ");
+  $("annivLabel").textContent = (dispNames?dispNames+" — ":"")+"交際開始 "+fmtDate(state.config.anniv)+" から";
+  // 次のマイルストーン: 100日刻みの節目 と 毎年の記念日 のうち近い方
+  const next100 = (Math.floor(days/100)+1)*100;              // 例: 234日目なら300日目
+  const n100days = next100 - days;                            // それまでの残り日数
+  let yearAnniv = new Date(today.getFullYear(), anniv.getMonth(), anniv.getDate());
+  if(yearAnniv<=today) yearAnniv = new Date(today.getFullYear()+1, anniv.getMonth(), anniv.getDate());
+  const nYear = Math.round((yearAnniv-today)/86400000);
+  const yrs = yearAnniv.getFullYear()-anniv.getFullYear();
+  let msg;
+  if(n100days<=nYear){
+    msg = `<b>${next100.toLocaleString()}日目</b> まで あと <b>${n100days}日</b>`;
+  }else{
+    msg = `<b>${yrs}周年</b> まで あと <b>${nYear}日</b>`;
+  }
+  $("annivMilestone").innerHTML = "🎉 つぎの節目<br>"+msg;
+}
+
+/* ---------- 設定・共有 ---------- */
+let tmpEvents = [];
+function escA(s){ return (s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+function openSettings(){
+  const c = state.config;
+  $("sAnniv").value = c.anniv||"";
+  $("sP1Name").value = (c.p1&&c.p1.name)||"";
+  $("sP1Birth").value = (c.p1&&c.p1.birth)||"";
+  $("sP2Name").value = (c.p2&&c.p2.name)||"";
+  $("sP2Birth").value = (c.p2&&c.p2.birth)||"";
+  tmpEvents = JSON.parse(JSON.stringify(c.events||[]));
+  renderEventRows();
+  $("settingsModal").classList.remove("hidden");
+}
+function renderEventRows(){
+  $("evRows").innerHTML = tmpEvents.map((ev,i)=>`
+    <div class="ev-row">
+      <input type="text" value="${escA(ev.label)}" placeholder="例: 初デート記念日" oninput="tmpEvents[${i}].label=this.value">
+      <input type="date" value="${escA(ev.date)}" onchange="tmpEvents[${i}].date=this.value">
+      <button title="削除" onclick="tmpEvents.splice(${i},1);renderEventRows()">✕</button>
+    </div>`).join("");
+}
+function addEventRow(){ tmpEvents.push({label:"",date:""}); renderEventRows(); }
+async function saveSettings(){
+  const c = state.config;
+  c.anniv = $("sAnniv").value;
+  c.p1 = { name:$("sP1Name").value.trim(), birth:$("sP1Birth").value };
+  c.p2 = { name:$("sP2Name").value.trim(), birth:$("sP2Birth").value };
+  c.events = tmpEvents.filter(ev=>ev.label.trim()||ev.date).map(ev=>({label:ev.label.trim(),date:ev.date}));
+  c.names = [c.p1.name, c.p2.name].filter(Boolean).join(" & ");
+  try{
+    await saveConfig();
+    renderAnniv();
+    closeModal("settingsModal");
+    toast("設定を保存しました(ふたりで共有されます)");
+    if(!$("screen-events").classList.contains("hidden")) renderEvents();
+  }catch(e){ console.error(e); toast("保存に失敗しました"); }
+}
+async function invitePartner(){
+  const email = $("sPartner").value.trim();
+  if(!email.includes("@")){ toast("メールアドレスを確認してください"); return; }
+  try{
+    await api(`files/${state.rootId}/permissions?sendNotificationEmail=true&emailMessage=${q("ふたりの旅ノートに招待します🧳 承認したら、旅ノートのサイトを開いて自分のGoogleアカウントでログインしてね。")}`,{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ type:"user", role:"writer", emailAddress:email })
+    });
+    toast("💌 招待を送りました!");
+    $("sPartner").value="";
+  }catch(e){
+    console.error(e);
+    toast("招待に失敗しました。アドレスを確認してください");
+  }
+}
+</script>
+</body>
+</html>
