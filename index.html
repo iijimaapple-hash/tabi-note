@@ -697,8 +697,9 @@ main{max-width:1060px;margin:0 auto;padding:26px 20px 90px}
     <div class="okbox">相手側の使い方: 届いた共有を承認したあと、同じサイトを開いて自分の Google アカウントでログインするだけで、同じアルバムが見られます。</div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="signOut()">ログアウト</button>
-      <button class="btn btn-teal" onclick="saveSettings()">保存する</button>
+      <button class="btn btn-teal" id="settingsSaveBtn" onclick="saveSettings()">保存する</button>
     </div>
+    <p class="note-mini" style="text-align:right;margin-top:8px">ふたりの旅ノート v1.5</p>
   </div>
 </div>
 
@@ -934,8 +935,12 @@ async function api(path, opts={}, retry=true){
 function q(s){ return encodeURIComponent(s); }
 
 async function ensureRoot(){
-  const res = await api(`files?q=${q(`name = '${ROOT_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`)}&fields=files(id,name,owners)&pageSize=5`);
-  if(res.files.length){ state.rootId = res.files[0].id; return; }
+  const res = await api(`files?q=${q(`name = '${ROOT_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`)}&fields=files(id,name,createdTime)&pageSize=10`);
+  if(res.files.length){
+    // 万一同名フォルダが複数あっても、常に最初に作られたものを使う(毎回同じ場所を見る)
+    res.files.sort((a,b)=> (a.createdTime||"") < (b.createdTime||"") ? -1 : 1);
+    state.rootId = res.files[0].id; return;
+  }
   const created = await api("files", {
     method:"POST", headers:{"Content-Type":"application/json"},
     body: JSON.stringify({ name: ROOT_NAME, mimeType:"application/vnd.google-apps.folder" })
@@ -943,24 +948,37 @@ async function ensureRoot(){
   state.rootId = created.id;
 }
 async function loadConfig(){
-  const res = await api(`files?q=${q(`name = '${CONFIG_NAME}' and '${state.rootId}' in parents and trashed = false`)}&fields=files(id)&pageSize=1`);
-  if(res.files.length){
-    state.configFileId = res.files[0].id;
-    try{
-      const r = await api(`files/${state.configFileId}?alt=media`);
-      const loaded = await r.json();
+  const res = await api(`files?q=${q(`name = '${CONFIG_NAME}' and '${state.rootId}' in parents and trashed = false`)}&fields=files(id,modifiedTime)&orderBy=modifiedTime desc&pageSize=10`);
+  if(!res.files.length) return;
+  state.configFileId = res.files[0].id; // いちばん新しく更新されたものを正とする
+  // 過去バージョンの名残で重複ファイルがあれば自動整理
+  for(const dup of res.files.slice(1)){
+    try{ await api(`files/${dup.id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({trashed:true})}); }catch(e){}
+  }
+  try{
+    // api() は JSON レスポンスを解析済みで返す(以前ここで二重解析してエラーになり、設定が毎回初期化されていた)
+    let loaded = await api(`files/${state.configFileId}?alt=media`);
+    if(loaded && typeof loaded.json === "function") loaded = await loaded.json(); // 念のため両対応
+    if(loaded && typeof loaded === "object"){
       state.config = {
         ...JSON.parse(JSON.stringify(CONFIG_DEFAULT)), ...loaded,
         p1:{...CONFIG_DEFAULT.p1, ...(loaded.p1||{})},
         p2:{...CONFIG_DEFAULT.p2, ...(loaded.p2||{})},
         events: Array.isArray(loaded.events)?loaded.events:[]
       };
-    }catch(e){ console.warn("config読込失敗",e); }
-  }
+    }
+  }catch(e){ console.warn("config読込失敗",e); }
 }
 async function saveConfig(){
   await ensureToken();
-  // ① 設定ファイルがまだ無ければ、まず空ファイルを確実に作る
+  // ① 既存の設定ファイルを再確認(重複作成の防止)
+  if(!state.configFileId){
+    try{
+      const res = await api(`files?q=${q(`name = '${CONFIG_NAME}' and '${state.rootId}' in parents and trashed = false`)}&fields=files(id)&orderBy=modifiedTime desc&pageSize=1`);
+      if(res.files.length) state.configFileId = res.files[0].id;
+    }catch(e){}
+  }
+  // ② それでも無ければ、まず空ファイルを確実に作る
   if(!state.configFileId){
     const meta = await api("files",{
       method:"POST", headers:{"Content-Type":"application/json"},
@@ -968,7 +986,7 @@ async function saveConfig(){
     });
     state.configFileId = meta.id;
   }
-  // ② 中身を書き込む(失敗したら例外にして「保存しました」と偽らない)
+  // ③ 中身を書き込む(失敗したら例外にして「保存しました」と偽らない)
   const r = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${state.configFileId}?uploadType=media`,{
     method:"PATCH",
     headers:{ Authorization:"Bearer "+accessToken, "Content-Type":"application/json" },
@@ -1498,6 +1516,8 @@ async function saveSettings(){
   c.p2 = { name:$("sP2Name").value.trim(), birth:$("sP2Birth").value };
   c.events = tmpEvents.filter(ev=>ev.label.trim()||ev.date).map(ev=>({label:ev.label.trim(),date:ev.date}));
   c.names = [c.p1.name, c.p2.name].filter(Boolean).join(" & ");
+  const btn = $("settingsSaveBtn");
+  btn.disabled = true; btn.textContent = "保存中…"; // 連打による二重保存を防止
   try{
     await saveConfig();
     renderAnniv();
@@ -1505,6 +1525,7 @@ async function saveSettings(){
     toast("設定を保存しました(ふたりで共有されます)");
     if(!$("screen-events").classList.contains("hidden")) renderEvents();
   }catch(e){ console.error(e); toast("保存に失敗しました"); }
+  btn.disabled = false; btn.textContent = "保存する";
 }
 async function invitePartner(){
   const email = $("sPartner").value.trim();
